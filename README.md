@@ -1,5 +1,7 @@
 # Visualizza IP
 
+
+
 Questo programma Python mostra l'indirizzo IP pubblico e quello locale del dispositivo.
 
 ## Come usarlo
