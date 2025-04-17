@@ -1,16 +1,25 @@
 import socket
 import requests
 import tkinter as tk
+import psutil
 from tkinter import font
 
+
 def get_local_ip():
-    """Ottiene l'indirizzo IP locale."""
+    """Ottiene l'indirizzo IP locale escludendo le interfacce virtuali."""
     try:
-        hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
-        return local_ip
-    except socket.gaierror:
+        # Ottieni tutte le interfacce di rete attive
+        for interface, addrs in psutil.net_if_addrs().items():
+            # Escludi le interfacce virtuali tipiche (VirtualBox, VPN, Docker, etc.)
+            if 'veth' not in interface and 'docker' not in interface and 'VirtualBox' not in interface:
+                for addr in addrs:
+                    if addr.family == socket.AF_INET:
+                        # Se l'indirizzo non appartiene alla rete virtuale, restituiscilo
+                        if '192.168.56' not in addr.address:  # Ignora gli indirizzi della rete virtuale
+                            return addr.address
         return "Impossibile ottenere l'IP locale"
+    except Exception as e:
+        return f"Errore: {e}"
 
 def get_public_ip():
     """Ottiene l'indirizzo IP pubblico."""
@@ -37,7 +46,7 @@ def show_ips():
     center_x = int(screen_width/2 - window_width / 2)
     center_y = int(screen_height/2 - window_height / 2)
     window.geometry(f'{window_width}x{window_height}+{center_x}+{center_y}')
-    window.resizable(False, False) # Rende la finestra non ridimensionabile
+    window.resizable(False, False)  # Rende la finestra non ridimensionabile
 
     # Definisci un font più grande e visivamente gradevole
     ip_font = font.Font(family="Helvetica", size=16, weight="bold")
@@ -57,8 +66,8 @@ def show_ips():
     ok_button = tk.Button(window, text="OK", command=window.destroy, padx=20, pady=10)
     ok_button.grid(row=2, column=0, columnspan=2, pady=15)
 
-    window.grid_columnconfigure(0, weight=1) # Permette al testo a sinistra di allinearsi
-    window.grid_columnconfigure(1, weight=1) # Permette al valore a destra di allinearsi
+    window.grid_columnconfigure(0, weight=1)  # Permette al testo a sinistra di allinearsi
+    window.grid_columnconfigure(1, weight=1)  # Permette al valore a destra di allinearsi
 
     window.mainloop()
 
